@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Steamworks SDK (라이선스상 커밋 금지)
+steamworks_sdk/
+steam_api*.dll
+steam_api*.lib
+libsteam_api.*
+steam_appid.txt
+*.pdb
+*.pyd
+*.so

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steamworks-py"
+version = "0.0.0"
+description = "Steamworks SDK 1:1 Python bindings"
+requires-python = ">=3.13"
+dependencies = []
+
+# 네이티브 바인딩 방식(pybind11/Cython/cffi/ctypes)과 빌드 백엔드는 미정. 순수 Python 골격 상태.
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
