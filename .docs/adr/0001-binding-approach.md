@@ -67,7 +67,7 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 ### 구현 원칙
 - **바인딩은 얇게("1:1").** SDK 인터페이스 단위로 노출하고, 그 이상의 추상화는 MATCHMAKING의 `steam` 어댑터 레이어에서 한다.
 - **동작은 SDK 함수와 최대한 같게.** 이름만 이름 규칙대로 바꾸고, 인자·반환값(`bool`/`EResult`/핸들)·호출 순서·콜백 흐름은 SDK를 따른다. 파이썬식 재해석(예외 변환, 고수준 래퍼 등)은 바인딩에서 하지 않는다.
-- **빌드**: scikit-build-core + CMake + nanobind. stable ABI(`cp312-abi3`) 휠로 빌드한다. SDK 경로는 CMake 변수로 받고 기본값은 `steamworks_sdk/`.
+- **빌드**: scikit-build-core + CMake + nanobind. stable ABI(`cp312-abi3`) 휠로 빌드한다. SDK 경로는 CMake 변수로 받는다: 헤더는 `STEAMWORKS_SDK_DIR`(기본 `steamworks_sdk/`)의 `public/`, lib·DLL은 `STEAMWORKS_LIB_DIR`(기본 `sdk/`).
 - **DLL은 패키지 안에 둔다.** 빌드·설치 시 CMake가 `sdk/`의 DLL(win64: `steam_api64.dll`)을 `.pyd`와 같은 폴더(`steamworks/`)로 복사한다. Python 3.8+는 확장 모듈과 같은 폴더의 의존 DLL을 자동으로 찾으므로 별도 로드 코드는 없다(작업 디렉터리·PATH 의존 금지, MATCHMAKING backlog 14와 일치). Linux 지원 시 rpath `$ORIGIN`으로 같은 규칙을 맞춘다.
 - **콜백 펌프는 호출자가 돌린다.** 라이브러리는 스레드를 만들지 않는다. 게임은 프레임마다 `run_callbacks()`(= `SteamAPI_RunCallbacks`)를 호출한다. 파이썬 콜백은 이 호출 안에서 같은 스레드로 실행되며, 파이썬 예외는 C++ 경계를 넘기지 않고 처리한다.
 - **콜백 구조체는 파이썬 값으로 변환**해 넘긴다(C++ 포인터를 파이썬에 노출하지 않음).

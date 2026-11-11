@@ -5,8 +5,8 @@
 ## Q1-1. 브로드캐스트 콜백 (`STEAM_CALLBACK` / `CCallback` 대응)
 객체 단위 등록. 생성 = 등록.
 ```python
-cb = steamworks.Callback(LobbyEnter, on_enter)   # on_enter(data: LobbyEnter) -> None
-cb.unregister()        # CCallback::Unregister
+cb = steamworks.Callback(LobbyEnter, on_enter)  # on_enter(data: LobbyEnter) -> None
+cb.unregister()  # CCallback::Unregister
 cb.register(on_enter)  # 다시 등록
 cb.is_registered()
 ```
@@ -22,7 +22,7 @@ cb.is_registered()
 ## Q1-4. CallResult (`CCallResult` 대응)
 ```python
 cr = steamworks.CallResult(LobbyCreated)
-cr.set(api_call, on_created)   # on_created(data: LobbyCreated, io_failure: bool) -> None
+cr.set(api_call, on_created)  # on_created(data: LobbyCreated, io_failure: bool) -> None
 cr.cancel()
 cr.is_active()
 ```

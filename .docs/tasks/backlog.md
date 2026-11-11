@@ -1,4 +1,4 @@
-# Backlog — 구현 우선순위 (제안, 사용자 승인 대기)
+# Backlog — 구현 우선순위 (승인됨 2026-11-11)
 
 원칙: 구현은 [ADR 0001](../adr/0001-binding-approach.md)과 [API 명세](../api/)를 따르고 **동작은 SDK 함수와 최대한 같게** 한다. 각 항목은 구현 전 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
 
@@ -10,7 +10,7 @@
 
 | # | 작업 | 내용 | 검증 |
 |---|---|---|---|
-| 1 | **빌드 골격** | scikit-build-core 전환, `CMakeLists.txt`(헤더 `steamworks_sdk/public`, lib·DLL `sdk/`), nanobind abi3 빈 `_native`, DLL 복사, `nanobind_add_stub`, `py.typed`. ADR "빌드" 줄의 SDK 경로 문구 정리 | `pip install -e .` 후 import 테스트, mypy |
+| 1 | ~~**빌드 골격**~~ (완료 2026-11-11) | scikit-build-core 전환, `CMakeLists.txt`(헤더 `steamworks_sdk/public`, lib·DLL `sdk/`), nanobind abi3 빈 `_native`, DLL 복사, `nanobind_add_stub`, `py.typed`. ADR "빌드" 줄의 SDK 경로 문구 정리 | `pip install -e .` 후 import 테스트, mypy |
 | 2 | **기본 타입·상수** | `Result`·`SteamAPIInitResult` 등 enum(IntEnum), `CSteamID`, 핸들 무효값 상수 | 단위 테스트(Steam 불필요) |
 | 3 | **수명주기** | `init_ex`, `shutdown`, `restart_app_if_necessary`, `run_callbacks`, 인터페이스 접근자 `None` 처리 | Steam 없음 → `init_ex` 실패 결과 반환 확인 / 통합 |
 | 4 | **콜백 디스패치** | `Callback`, `CallResult`, 등록 유지, 핸들러 예외 → unraisablehook | 등록·해제 상태 단위 테스트, 실제 수신은 통합 |
