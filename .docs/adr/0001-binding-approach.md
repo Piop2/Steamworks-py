@@ -42,6 +42,16 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 - 역할 분리: **연결 상태(접속·끊김)는 Sockets가 기준**, 로비는 방 찾기·입장·메타데이터만 맡는다.
 - `ISteamNetworkingMessages`는 쓰지 않는다(SDK 설명상 UDP 코드 이식용).
 
+### 이름 규칙 (파이썬 쪽)
+PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대응은 아래 규칙으로 유지한다.
+
+| 대상 | 규칙 | 예 |
+|---|---|---|
+| 함수·메서드 | snake_case | `CreateLobby` → `create_lobby`, `ConnectP2P` → `connect_p2p` |
+| 구조체·콜백 타입 | `_t` 제거, PascalCase 유지 | `LobbyCreated_t` → `LobbyCreated` |
+| enum | `k_E` 접두사·타입명 제거, `Enum` 멤버(UPPER_SNAKE) | `k_ELobbyTypePublic` → `LobbyType.PUBLIC` |
+| 인터페이스 클래스 | `I` 제거 | `ISteamMatchmaking` → `SteamMatchmaking` |
+
 ### 초기 범위
 | 영역 | SDK API | 용도 |
 |---|---|---|
@@ -71,4 +81,5 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 - SDK 버전을 하나로 고정하고 README에 적는다. 구조체·시그니처 불일치는 컴파일 단계에서 드러난다.
 
 ## 미결
-1. 파이썬 쪽 이름 규칙: SDK 이름 그대로(`CreateLobby`)인가 snake_case(`create_lobby`)인가.
+1. 초기화 함수: C++ 바인딩이므로 인터페이스 버전을 검증하는 `SteamAPI_InitEx`를 쓸지(초기 범위 표의 `SteamAPI_InitFlat`은 flat API 기준이라 재검토 필요).
+2. 실행 시 DLL 위치: 빌드 시 `sdk/`의 DLL을 패키지(`.pyd` 옆)로 복사해 패키지 내부에서 로드할지, 호출자가 DLL 경로를 지정할지.
