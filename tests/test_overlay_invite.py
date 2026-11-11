@@ -1,18 +1,22 @@
-"""Steam 오버레이 초대 창 수동 확인용 예제 (Windows 전용, 추가 패키지 없음).
+"""Steam 오버레이 초대 창 통합 테스트 (Windows 전용, 추가 패키지 없음, 수동 육안 확인).
 
 오버레이는 OpenGL/D3D의 화면 출력을 가로채 그리므로 GDI 창이 아니라 OpenGL 창이 필요하다.
 user32/gdi32/opengl32를 ctypes로 불러 빈 창을 띄우고 매 프레임 SwapBuffers + run_callbacks.
-
-실행 (레포 루트, steam_appid.txt 있는 곳, Steam 실행 중):
-    python examples/overlay_invite.py [--seconds 15] [--invite-after 3]
+실행 중 초대 창이 뜨는지 눈으로 확인한다: pytest -m integration tests/test_overlay_invite.py
 """
 
-import argparse
 import ctypes
 import time
 from ctypes import wintypes
+from pathlib import Path
+
+import pytest
 
 import steamworks
+
+APP_ID_FILE = Path(__file__).resolve().parents[1] / "steam_appid.txt"
+SECONDS = 6.0
+INVITE_AFTER = 2.0
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
@@ -101,18 +105,14 @@ def _wnd_proc(hwnd: int, msg: int, wparam: int, lparam: int) -> int:
 wnd_proc = WNDPROC(_wnd_proc)  # module-level: must outlive the window
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seconds", type=float, default=15.0)
-    parser.add_argument("--invite-after", type=float, default=3.0)
-    args = parser.parse_args()
-
+@pytest.mark.integration
+def test_overlay_invite_dialog() -> None:
+    if not APP_ID_FILE.exists():
+        pytest.skip("steam_appid.txt missing")
     code, message = steamworks.init_ex()  # must precede window creation so the overlay can hook
-    if code != steamworks.SteamAPIInitResult.OK:
-        raise SystemExit(f"init_ex failed: {code.name} {message}")
+    assert code == steamworks.SteamAPIInitResult.OK, message
     friends = steamworks.steam_friends()
     assert friends is not None
-    print("persona:", friends.get_persona_name())
 
     hinst = kernel32.GetModuleHandleW(None)
     wc = WNDCLASSW(
@@ -139,16 +139,15 @@ def main() -> None:
     start = time.monotonic()
     invited = False
     try:
-        while time.monotonic() - start < args.seconds:
+        while time.monotonic() - start < SECONDS:
             while user32.PeekMessageW(ctypes.byref(msg), None, 0, 0, PM_REMOVE):
                 if msg.message == WM_QUIT:
-                    return
+                    break
                 user32.TranslateMessage(ctypes.byref(msg))
                 user32.DispatchMessageW(ctypes.byref(msg))
-            if not invited and time.monotonic() - start >= args.invite_after:
+            if not invited and time.monotonic() - start >= INVITE_AFTER:
                 # No lobby yet (backlog 6): an invalid lobby ID still opens the dialog.
                 friends.activate_game_overlay_invite_dialog(steamworks.CSteamID())
-                print("activate_game_overlay_invite_dialog called")
                 invited = True
             opengl32.glClear(GL_COLOR_BUFFER_BIT)
             gdi32.SwapBuffers(hdc)
@@ -160,6 +159,4 @@ def main() -> None:
         user32.DestroyWindow(hwnd)
         steamworks.shutdown()
 
-
-if __name__ == "__main__":
-    main()
+    assert invited
