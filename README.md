@@ -16,4 +16,6 @@ pytest
 
 MATCHMAKING의 venv를 활성화한 뒤: `pip install -e extern/Steamworks-py`
 
-Steamworks SDK는 라이선스상 커밋하지 않는다. 배치 경로: `steamworks_sdk/` (gitignore).
+Steamworks SDK(**1.65**)는 라이선스상 커밋하지 않는다.
+- `steamworks_sdk/`: SDK zip의 `sdk/` 원본 전체 (작업용, gitignore)
+- `sdk/`: 빌드할 플랫폼의 DLL·lib만 (win64: `steam_api64.dll`, `steam_api64.lib`)

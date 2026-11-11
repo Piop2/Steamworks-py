@@ -29,7 +29,13 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 - **현재는 Windows(64비트) 기준으로 개발·검증한다.** 다른 플랫폼을 막는 설계(Windows 전용 API를 바인딩 코어에 섞기 등)는 하지 않되, 빌드·테스트는 Windows부터.
 
 ### SDK 버전
-- 사용자가 `steamworks_sdk/`에 배치한 SDK 버전으로 고정한다. 배치 후 실제 버전 번호를 README에 기록한다.
+- **Steamworks SDK 1.65**(2026-07-23)로 고정한다. 버전을 올릴 때는 이 ADR과 README를 함께 갱신한다.
+
+### SDK 배치 (모두 커밋 금지)
+| 폴더 | 내용 | 용도 |
+|---|---|---|
+| `steamworks_sdk/` | SDK 원본 전체(zip의 `sdk/`를 그대로 풀어 둠) | 작업용 참조(헤더 등). gitignore |
+| `sdk/` | **빌드할 플랫폼의 DLL·lib만** (현재 win64: `steam_api64.dll`, `steam_api64.lib`) | 빌드·실행용. `steam_api*` 패턴으로 ignore |
 
 ### 초기 범위
 | 영역 | SDK API | 용도 |
