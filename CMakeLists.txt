@@ -48,6 +48,7 @@ add_custom_command(TARGET _native POST_BUILD
 nanobind_add_stub(_native_stub
   MODULE _native
   INCLUDE_PRIVATE
+  PATTERN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/stubgen_patterns.txt"
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/steamworks/_native.pyi"
   PYTHON_PATH "$<TARGET_FILE_DIR:_native>"
   DEPENDS _native)

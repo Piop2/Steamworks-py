@@ -5,15 +5,31 @@ from pathlib import Path
 import pytest
 
 import steamworks
-from steamworks import AccountType, CSteamID, Result, SteamAPIInitResult, Universe
+from steamworks import (
+    AccountType,
+    ChatMemberStateChange,
+    ChatRoomEnterResponse,
+    CSteamID,
+    LobbyComparison,
+    LobbyDistanceFilter,
+    LobbyType,
+    Result,
+    SteamAPIInitResult,
+    Universe,
+)
 
 HEADERS = Path(__file__).resolve().parents[1] / "steamworks_sdk" / "public" / "steam"
 
-ENUMS: list[tuple[type[enum.IntEnum], str, str]] = [
+ENUMS: list[tuple[type[enum.IntEnum] | type[enum.IntFlag], str, str]] = [
     (Result, "EResult", "steamclientpublic.h"),
     (SteamAPIInitResult, "ESteamAPIInitResult", "steam_api.h"),
     (Universe, "EUniverse", "steamuniverse.h"),
     (AccountType, "EAccountType", "steamclientpublic.h"),
+    (LobbyType, "ELobbyType", "isteammatchmaking.h"),
+    (LobbyComparison, "ELobbyComparison", "isteammatchmaking.h"),
+    (LobbyDistanceFilter, "ELobbyDistanceFilter", "isteammatchmaking.h"),
+    (ChatMemberStateChange, "EChatMemberStateChange", "isteammatchmaking.h"),
+    (ChatRoomEnterResponse, "EChatRoomEnterResponse", "steamclientpublic.h"),
 ]
 
 GABE = 76561197960287930  # account 22202, instance 1, individual, public
@@ -32,9 +48,9 @@ def _header_values(sdk_enum: str, header: str) -> dict[str, int]:
     values: dict[str, int] = {}
     next_value = 0
     for name, value in re.findall(
-        rf"\b(k_{sdk_enum}\w*)\s*(?:=\s*(-?\d+))?\s*(?:,|$)", body, re.MULTILINE
+        rf"\b(k_{sdk_enum}\w*)\s*(?:=\s*(-?(?:0x[0-9A-Fa-f]+|\d+)))?\s*(?:,|$)", body, re.MULTILINE
     ):
-        current = int(value) if value else next_value
+        current = int(value, 0) if value else next_value
         values[_snake(name[len(f"k_{sdk_enum}") :].lstrip("_"))] = current
         next_value = current + 1
     return values
@@ -42,7 +58,9 @@ def _header_values(sdk_enum: str, header: str) -> dict[str, int]:
 
 @pytest.mark.skipif(not HEADERS.exists(), reason="Steamworks SDK headers not found")
 @pytest.mark.parametrize(("py_enum", "sdk_enum", "header"), ENUMS)
-def test_enum_matches_sdk_header(py_enum: type[enum.IntEnum], sdk_enum: str, header: str) -> None:
+def test_enum_matches_sdk_header(
+    py_enum: type[enum.IntEnum] | type[enum.IntFlag], sdk_enum: str, header: str
+) -> None:
     assert {m.name: m.value for m in py_enum} == _header_values(sdk_enum, header)
 
 
@@ -52,6 +70,16 @@ def test_enums_are_int_enums() -> None:
     assert ok == 1
     assert Result(31) is Result.IP_NOT_FOUND
     assert SteamAPIInitResult(2) is SteamAPIInitResult.NO_STEAM_CLIENT
+
+
+def test_bit_flag_enum_is_int_flag() -> None:
+    assert issubclass(ChatMemberStateChange, enum.IntFlag)
+    flags = ChatMemberStateChange(
+        6
+    )  # combined value, as in LobbyChatUpdate.chat_member_state_change
+    assert flags == ChatMemberStateChange.LEFT | ChatMemberStateChange.DISCONNECTED
+    assert ChatMemberStateChange.LEFT in flags
+    assert ChatMemberStateChange.ENTERED not in flags
 
 
 def test_steam_id_from_uint64() -> None:

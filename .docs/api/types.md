@@ -14,7 +14,7 @@
 | `SteamNetworkingIdentity` | 클래스 | `set_steam_id()`, `get_steam_id()` 등 필요분 |
 | `SteamNetworkingConfigValue_t*` 배열 | `Sequence[SteamNetworkingConfigValue]` | 초기 범위에선 빈 목록만 쓰여도 시그니처는 SDK 그대로 |
 | `SteamNetConnectionInfo_t` 등 출력 구조체 | 파이썬 값 객체(읽기 전용) | |
-| enum (`EResult` 등) | `enum.IntEnum` | `EResult` → `Result.OK`. 구조체 필드가 `uint32`로 선언된 enum 값과 비교 가능해야 해서 IntEnum |
+| enum (`EResult` 등) | `enum.IntEnum` | `EResult` → `Result.OK`. 구조체 필드가 `uint32`로 선언된 enum 값과 비교 가능해야 해서 IntEnum. **예외: 비트 플래그 enum은 `enum.IntFlag`**(조합값 표현, 결정 2026-11-11). 예: `EChatMemberStateChange` → `ChatMemberStateChange` |
 | `#define`/`const` 상수 | 모듈 상수 UPPER_SNAKE | `k_` 접두사의 `k_`/헝가리안 제거: `k_nSteamNetworkingSend_Reliable` → `STEAM_NETWORKING_SEND_RELIABLE`, `k_HSteamNetConnection_Invalid` → `H_STEAM_NET_CONNECTION_INVALID` |
 
 ## 출력 인자 (`T* pOut…`)

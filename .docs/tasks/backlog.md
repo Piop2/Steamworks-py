@@ -15,7 +15,7 @@
 | 3 | ~~**수명주기**~~ (완료 2026-11-11) | `init_ex`, `shutdown`, `restart_app_if_necessary`, `run_callbacks` (접근자 `None` 처리는 5로 이동) | Steam 없음 → `init_ex` 실패 결과 반환 확인 / 통합 |
 | 4 | ~~**콜백 디스패치**~~ (완료 2026-11-11) | `Callback`, `CallResult`, 등록 유지, 핸들러 예외 → unraisablehook, `LobbyCreated`·`LobbyEnter` 구조체 | 등록·해제 상태 단위 테스트, 실제 수신·예외는 6 통합 |
 | 5 | ~~**`SteamUser` / `SteamFriends`**~~ (완료 2026-11-11) | 초기 범위 함수, 인터페이스 접근자 `None` 처리·shutdown 후 보관 객체 `RuntimeError`([errors](../api/errors.md)) | 통합 |
-| 6 | **`SteamMatchmaking`** | 로비 생성·참가·데이터 + 콜백 5종 + 로비 검색·`SetLobbyJoinable`([scope](../api/scope.md)) | 통합 |
+| 6 | ~~**`SteamMatchmaking`**~~ (완료 2026-11-11) | 로비 생성·참가·데이터 + 콜백 5종 + 로비 검색·`SetLobbyJoinable`([scope](../api/scope.md)) | 통합 |
 | 7 | **`SteamNetworkingSockets` / `SteamNetworkingUtils`** | listen socket·연결·poll group·메시지(`SteamNetworkingMessage`), `SteamNetworkingIdentity`, 상태 변경 콜백, `init_relay_network_access` | 통합 |
 | 8 | **통합 테스트 정리** | AppID 480, pytest marker(기본 skip), 2인 P2P 연결 시나리오 | 수동 2클라이언트 |
 | 9 | **MATCHMAKING 연동** | 서브모듈 푸시 → 포인터 커밋, MATCHMAKING venv 설치 확인 | MATCHMAKING에서 import |

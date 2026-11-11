@@ -3,9 +3,17 @@
 > 작업 상태가 바뀔 때마다 갱신한다. "지금 뭐 해야 돼?"의 답은 여기의 **다음 할 일**. 전체 작업 목록은 [backlog.md](backlog.md).
 
 ## 진행 중
-없음. backlog 5 완료, 6(`SteamMatchmaking`) 구현 전 보고 단계.
+없음. backlog 6 완료, 7(`SteamNetworkingSockets`/`Utils`) 구현 전 보고 단계.
 
 ## 최근 완료 (2026-11-11)
+- **backlog 6 `SteamMatchmaking`**: `bind_matchmaking.cpp`
+  - `steam_matchmaking()`, 로비 생성·참가·나가기, 멤버·방장 조회, 로비 데이터 get/set/delete, `set_lobby_joinable`, `get_lobby_member_limit`, 검색(`request_lobby_list`, `get_lobby_by_index`, 필터 5종). SDK 1:1, `Interface<T>` 재사용.
+  - enum(IntEnum): `LobbyType`, `LobbyComparison`, `LobbyDistanceFilter`, `ChatRoomEnterResponse`(결정: 추가). `ChatMemberStateChange`는 **IntFlag**(결정: 비트 플래그 enum은 IntFlag, [types.md](../api/types.md) 반영). stubgen이 IntFlag 내부 속성을 써서 mypy가 깨지므로 `stubgen_patterns.txt`(`PATTERN_FILE`)로 제거.
+  - `test_overlay_invite.py`: 실제 친구 공개 로비를 만들고 그 ID로 초대 창을 연다(초대 실제 전송 가능). 창 유지 시간 `STEAMWORKS_OVERLAY_SECONDS`(기본 6초), 창 닫으면 종료.
+  - 구조체 추가: `LobbyChatUpdate`, `LobbyDataUpdate`, `GameLobbyJoinRequested`(필드 `CSteamID`), `LobbyMatchList`.
+  - `test_types.py` 헤더 파서 16진수 값 지원.
+  - 통합(결정: 실행별 salt 키로 공개 로비 태그 → 검색으로 내 로비만 찾기): 생성·`LobbyEnter` 수신·방장/멤버/한도·데이터·`LobbyDataUpdate` 수신·검색·joinable·핸들러 예외 → `sys.unraisablehook` 확인. **backlog 4 미확인 항목(실제 수신·예외 경로) 해결.**
+  - 확인: pytest 45 passed, integration 4 passed, ruff check/format, mypy(strict) 통과.
 - **backlog 5 `SteamUser`/`SteamFriends`**: `interface.h`, `bind_user.cpp`, `bind_friends.cpp`
   - 접근자 `steam_user()`/`steam_friends() -> X | None`, `get_steam_id`, `get_persona_name`, `get_friend_persona_name`, `activate_game_overlay_invite_dialog`.
   - `Interface<T>{ptr, generation}` + 전역 세대 카운터(`shutdown()`마다 증가) → shutdown 후 보관 객체 호출 시 `RuntimeError`. 직접 생성 → `TypeError`. 문자열은 UTF-8 `replace`, NULL → `""`.
@@ -27,8 +35,8 @@
 - **backlog 1 빌드 골격**: scikit-build-core + CMake + nanobind(`cp312-abi3`).
 - API 명세 Q1–Q6 결정: [callbacks](../api/callbacks.md) · [types](../api/types.md) · [errors](../api/errors.md) · [module](../api/module.md) · [scope](../api/scope.md) · [dev-env](../api/dev-env.md).
 
-## 다음 할 일 — backlog 6 `SteamMatchmaking`
-- [scope.md](../api/scope.md) 범위(로비 생성·참가·데이터 + 콜백 5종 + 검색·`SetLobbyJoinable`)의 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다. `interface.h` 재사용.
-- 미확인: 콜백 실제 수신·핸들러 예외 → unraisablehook (backlog 6 통합 테스트).
+## 다음 할 일 — backlog 7 `SteamNetworkingSockets` / `SteamNetworkingUtils`
+- ADR 0001 연결·메시지 범위 + [scope.md](../api/scope.md) `init_relay_network_access`, [types.md](../api/types.md) `SteamNetworkingIdentity`·`SteamNetworkingMessage`·`SteamNetConnectionInfo`의 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
+- 2클라이언트 시나리오(남의 로비 `join_lobby`, `LobbyChatUpdate`, `GameLobbyJoinRequested`)는 backlog 8.
 - 미확인: MATCHMAKING venv에서 `pip install -e extern/Steamworks-py` 빌드(backlog 9).
 - 미적용: backlog 2 기본 타입(`Result`, `CSteamID` 등)은 docstring 없음.

@@ -1,0 +1,2 @@
+# nanobind.stubgen emits IntFlag internals (_boundary_, __str__ = __repr__, ...) that mypy rejects; drop them.
+.*\.ChatMemberStateChange\.(_boundary_|_flag_mask_|_singles_mask_|_all_bits_|_inverted_|__str__|__repr__):

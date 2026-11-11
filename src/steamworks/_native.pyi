@@ -484,8 +484,91 @@ class CallResult(Generic[_T]):
     def is_active(self) -> bool:
         """결과를 기다리는 중이면 `True`."""
 
+class LobbyType(enum.IntEnum):
+    """로비 공개 범위 (SDK `ELobbyType`)."""
+
+    PRIVATE = 0
+
+    FRIENDS_ONLY = 1
+
+    PUBLIC = 2
+
+    INVISIBLE = 3
+
+    PRIVATE_UNIQUE = 4
+
+class LobbyComparison(enum.IntEnum):
+    """로비 검색 필터 비교 방식 (SDK `ELobbyComparison`)."""
+
+    EQUAL_TO_OR_LESS_THAN = -2
+
+    LESS_THAN = -1
+
+    EQUAL = 0
+
+    GREATER_THAN = 1
+
+    EQUAL_TO_OR_GREATER_THAN = 2
+
+    NOT_EQUAL = 3
+
+class LobbyDistanceFilter(enum.IntEnum):
+    """로비 검색 거리 (SDK `ELobbyDistanceFilter`)."""
+
+    CLOSE = 0
+
+    DEFAULT = 1
+
+    FAR = 2
+
+    WORLDWIDE = 3
+
+class ChatMemberStateChange(enum.IntFlag):
+    """
+    로비 멤버 상태 변화 비트 플래그 (SDK `EChatMemberStateChange`, IntFlag).
+
+    `ChatMemberStateChange(update.chat_member_state_change)`로 감싸면 조합값도 표현되고 `ChatMemberStateChange.LEFT in flags`로 검사할 수 있다.
+    """
+
+    ENTERED = 1
+
+    LEFT = 2
+
+    DISCONNECTED = 4
+
+    KICKED = 8
+
+    BANNED = 16
+
+class ChatRoomEnterResponse(enum.IntEnum):
+    """로비 입장 응답 (SDK `EChatRoomEnterResponse`)."""
+
+    SUCCESS = 1
+
+    DOESNT_EXIST = 2
+
+    NOT_ALLOWED = 3
+
+    FULL = 4
+
+    ERROR = 5
+
+    BANNED = 6
+
+    LIMITED = 7
+
+    CLAN_DISABLED = 8
+
+    COMMUNITY_BAN = 9
+
+    MEMBER_BLOCKED_YOU = 10
+
+    YOU_BLOCKED_MEMBER = 11
+
+    RATELIMIT_EXCEEDED = 15
+
 class LobbyCreated:
-    """로비 생성 결과 (SDK `LobbyCreated_t`, `CreateLobby`의 CallResult)."""
+    """로비 생성 결과 (SDK `LobbyCreated_t`, `create_lobby`의 CallResult)."""
 
     @property
     def result(self) -> Result:
@@ -512,7 +595,137 @@ class LobbyEnter:
 
     @property
     def chat_room_enter_response(self) -> int:
-        """입장 응답 코드(SDK `EChatRoomEnterResponse` 값, uint32)."""
+        """입장 응답 코드(`ChatRoomEnterResponse` 값, uint32)."""
+
+class LobbyChatUpdate:
+    """로비 멤버 입장·퇴장 등 상태 변화 (SDK `LobbyChatUpdate_t`)."""
+
+    @property
+    def steam_id_lobby(self) -> int:
+        """로비 SteamID(uint64)."""
+
+    @property
+    def steam_id_user_changed(self) -> int:
+        """상태가 바뀐 사용자 SteamID(uint64)."""
+
+    @property
+    def steam_id_making_change(self) -> int:
+        """변화를 일으킨 사용자 SteamID(uint64). 추방 등에서 `steam_id_user_changed`와 다름."""
+
+    @property
+    def chat_member_state_change(self) -> int:
+        """`ChatMemberStateChange` 비트 조합(uint32)."""
+
+class LobbyDataUpdate:
+    """로비 또는 멤버 데이터 변경 (SDK `LobbyDataUpdate_t`)."""
+
+    @property
+    def steam_id_lobby(self) -> int:
+        """로비 SteamID(uint64)."""
+
+    @property
+    def steam_id_member(self) -> int:
+        """데이터가 바뀐 멤버 SteamID(uint64). 로비 자체 데이터면 로비 ID와 같음."""
+
+    @property
+    def success(self) -> int:
+        """변경 성공이면 1(uint8)."""
+
+class GameLobbyJoinRequested:
+    """
+    오버레이에서 로비 참가를 수락함 (SDK `GameLobbyJoinRequested_t`). 받으면 `join_lobby` 호출.
+    """
+
+    @property
+    def steam_id_lobby(self) -> CSteamID:
+        """참가할 로비."""
+
+    @property
+    def steam_id_friend(self) -> CSteamID:
+        """참가 경로가 된 친구. 친구를 거치지 않았으면 무효."""
+
+class LobbyMatchList:
+    """로비 검색 결과 (SDK `LobbyMatchList_t`, `request_lobby_list`의 CallResult)."""
+
+    @property
+    def lobbies_matching(self) -> int:
+        """찾은 로비 수(uint32). `get_lobby_by_index(0..n-1)`로 조회."""
+
+class SteamMatchmaking:
+    """
+    SDK `ISteamMatchmaking` 인터페이스. `steam_matchmaking()`로만 얻는다.
+
+    `shutdown()` 이후 보관해 둔 객체의 메서드를 호출하면 `RuntimeError`.
+    """
+
+    def create_lobby(self, lobby_type: LobbyType, max_members: int) -> int:
+        """
+        로비를 만들고 입장한다 (SDK `CreateLobby`). 반환한 호출 ID를 `CallResult(LobbyCreated)`에 넘긴다.
+
+        `LobbyEnter` 콜백도 온다. 실패하면 `API_CALL_INVALID`.
+        """
+
+    def join_lobby(self, steam_id_lobby: CSteamID) -> int:
+        """로비에 입장한다 (SDK `JoinLobby`). 반환한 호출 ID를 `CallResult(LobbyEnter)`에 넘긴다."""
+
+    def leave_lobby(self, steam_id_lobby: CSteamID) -> None:
+        """로비에서 나간다 (SDK `LeaveLobby`)."""
+
+    def get_num_lobby_members(self, steam_id_lobby: CSteamID) -> int:
+        """로비 멤버 수 (SDK `GetNumLobbyMembers`). 입장한 로비만 알 수 있다."""
+
+    def get_lobby_member_by_index(self, steam_id_lobby: CSteamID, member: int) -> CSteamID:
+        """
+        멤버 SteamID (SDK `GetLobbyMemberByIndex`). `get_num_lobby_members` 직후 0..n-1로 호출.
+        """
+
+    def get_lobby_data(self, steam_id_lobby: CSteamID, key: str) -> str:
+        """로비 데이터 값 (SDK `GetLobbyData`). 없으면 빈 문자열."""
+
+    def set_lobby_data(self, steam_id_lobby: CSteamID, key: str, value: str) -> bool:
+        """로비 데이터를 설정한다 (SDK `SetLobbyData`). 방장만 가능. 멤버에게 `LobbyDataUpdate`가 간다."""
+
+    def delete_lobby_data(self, steam_id_lobby: CSteamID, key: str) -> bool:
+        """로비 데이터를 지운다 (SDK `DeleteLobbyData`). 방장만 가능."""
+
+    def get_lobby_owner(self, steam_id_lobby: CSteamID) -> CSteamID:
+        """방장 SteamID (SDK `GetLobbyOwner`). 입장한 로비만 알 수 있다."""
+
+    def set_lobby_joinable(self, steam_id_lobby: CSteamID, lobby_joinable: bool) -> bool:
+        """새 입장 허용 여부를 바꾼다 (SDK `SetLobbyJoinable`). 방장만 가능."""
+
+    def get_lobby_member_limit(self, steam_id_lobby: CSteamID) -> int:
+        """최대 인원 (SDK `GetLobbyMemberLimit`). 모르면 0."""
+
+    def request_lobby_list(self) -> int:
+        """
+        로비를 검색한다 (SDK `RequestLobbyList`). 반환한 호출 ID를 `CallResult(LobbyMatchList)`에 넘긴다.
+
+        필터는 이 호출 전에 추가하며, 호출마다 초기화된다.
+        """
+
+    def get_lobby_by_index(self, lobby: int) -> CSteamID:
+        """검색 결과의 로비 SteamID (SDK `GetLobbyByIndex`). 범위 밖이면 무효 ID."""
+
+    def add_request_lobby_list_string_filter(self, key_to_match: str, value_to_match: str, comparison_type: LobbyComparison) -> None:
+        """문자열 로비 데이터 필터 (SDK `AddRequestLobbyListStringFilter`)."""
+
+    def add_request_lobby_list_numerical_filter(self, key_to_match: str, value_to_match: int, comparison_type: LobbyComparison) -> None:
+        """숫자 로비 데이터 필터 (SDK `AddRequestLobbyListNumericalFilter`)."""
+
+    def add_request_lobby_list_filter_slots_available(self, slots_available: int) -> None:
+        """빈자리 수 필터 (SDK `AddRequestLobbyListFilterSlotsAvailable`)."""
+
+    def add_request_lobby_list_distance_filter(self, lobby_distance_filter: LobbyDistanceFilter) -> None:
+        """검색 거리 필터 (SDK `AddRequestLobbyListDistanceFilter`)."""
+
+    def add_request_lobby_list_result_count_filter(self, max_results: int) -> None:
+        """최대 결과 수 (SDK `AddRequestLobbyListResultCountFilter`)."""
+
+def steam_matchmaking() -> SteamMatchmaking | None:
+    """
+    `SteamMatchmaking` 인터페이스를 얻는다 (SDK `SteamMatchmaking()`). `init_ex()` 전이거나 실패했으면 `None`.
+    """
 
 class SteamUser:
     """
