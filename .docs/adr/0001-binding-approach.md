@@ -67,7 +67,7 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 ### 구현 원칙
 - **바인딩은 얇게("1:1").** SDK 인터페이스 단위로 노출하고, 그 이상의 추상화는 MATCHMAKING의 `steam` 어댑터 레이어에서 한다.
 - **빌드**: scikit-build-core + CMake + nanobind. stable ABI(`cp312-abi3`) 휠로 빌드한다. SDK 경로는 CMake 변수로 받고 기본값은 `steamworks_sdk/`.
-- **DLL 로드 경로는 명시적으로 지정한다**(Windows는 확장 모듈 import 전 `os.add_dll_directory`. 상대경로·작업 디렉터리 의존 금지, MATCHMAKING backlog 14와 일치).
+- **DLL은 패키지 안에 둔다.** 빌드·설치 시 CMake가 `sdk/`의 DLL(win64: `steam_api64.dll`)을 `.pyd`와 같은 폴더(`steamworks/`)로 복사한다. Python 3.8+는 확장 모듈과 같은 폴더의 의존 DLL을 자동으로 찾으므로 별도 로드 코드는 없다(작업 디렉터리·PATH 의존 금지, MATCHMAKING backlog 14와 일치). Linux 지원 시 rpath `$ORIGIN`으로 같은 규칙을 맞춘다.
 - **콜백 펌프는 호출자가 돌린다.** 라이브러리는 스레드를 만들지 않는다. 게임은 프레임마다 `run_callbacks()`(= `SteamAPI_RunCallbacks`)를 호출한다. 파이썬 콜백은 이 호출 안에서 같은 스레드로 실행되며, 파이썬 예외는 C++ 경계를 넘기지 않고 처리한다.
 - **콜백 구조체는 파이썬 값으로 변환**해 넘긴다(C++ 포인터를 파이썬에 노출하지 않음).
 - **타입 스텁**: `nanobind.stubgen`으로 `.pyi`를 생성해 커밋하고, mypy(strict)는 이 스텁 기준으로 통과해야 한다.
@@ -81,4 +81,4 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 - SDK 버전을 하나로 고정하고 README에 적는다. 구조체·시그니처 불일치는 컴파일 단계에서 드러난다.
 
 ## 미결
-1. 실행 시 DLL 위치: 빌드 시 `sdk/`의 DLL을 패키지(`.pyd` 옆)로 복사해 패키지 내부에서 로드할지, 호출자가 DLL 경로를 지정할지.
+없음.
