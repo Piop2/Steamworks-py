@@ -55,7 +55,7 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 ### 초기 범위
 | 영역 | SDK API | 용도 |
 |---|---|---|
-| 수명주기 | `SteamAPI_InitEx`, `SteamAPI_Shutdown`, `SteamAPI_RestartAppIfNecessary` | 초기화·종료. `InitEx`는 인터페이스 버전을 검증하고 `ESteamAPIInitResult`+메시지를 준다(SDK 권장, 새 프로젝트용). 파이썬 `init()`은 실패 시 결과 코드·메시지를 담은 예외 |
+| 수명주기 | `SteamAPI_InitEx`, `SteamAPI_Shutdown`, `SteamAPI_RestartAppIfNecessary` | 초기화·종료. `InitEx`는 인터페이스 버전을 검증하고 `ESteamAPIInitResult`+메시지를 준다(SDK 권장, 새 프로젝트용). 파이썬 `init_ex()`는 SDK와 같게 `(ESteamAPIInitResult, str)`을 반환(예외 없음). 예외 변환이 필요하면 사용하는 쪽 어댑터에서 |
 | 콜백 | `SteamAPI_RunCallbacks`, `CCallResult`, `STEAM_CALLBACK` | 콜백·CallResult 수신 |
 | 사용자 | `ISteamUser` (`GetSteamID`) | 내 SteamID |
 | 친구 | `ISteamFriends` (`GetPersonaName`, `GetFriendPersonaName`, `ActivateGameOverlayInviteDialog`) | 이름 표시·초대 |
