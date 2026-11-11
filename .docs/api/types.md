@@ -8,9 +8,9 @@
 | `bool` | `bool` | |
 | `const char*` 입력/출력 | `str` (UTF-8) | |
 | `const void* pData, uint32 cbData` 입력 | `bytes` (버퍼 프로토콜 허용) | 길이는 자동 |
-| `SteamAPICall_t` | `int` | `CallResult.set`에 그대로 전달. 무효값 상수 `K_U_API_CALL_INVALID` |
+| `SteamAPICall_t` | `int` | `CallResult.set`에 그대로 전달. 무효값 상수 `API_CALL_INVALID` |
 | `HSteamNetConnection`, `HSteamListenSocket`, `HSteamNetPollGroup` | `int` | 무효값은 모듈 상수(아래) |
-| `CSteamID` | `CSteamID` 클래스 | SDK 메서드 그대로(`convert_to_uint64()`, `is_valid()`, `get_account_id()` 등 필요분) + `__eq__`/`__hash__`. `CSteamID(int)`로 생성 |
+| `CSteamID` | `CSteamID` 클래스 | SDK 헤더에 정의된 public 메서드 전부(기계적 snake_case: `BGameServerAccount` → `b_game_server_account`) + 비교 연산자(`==`/`!=`/`<`/`>`, SDK와 같음)·`__hash__`·`__repr__`. 생성자 4종. 선언만 있고 정의가 없는 `Render`·`SetFromString`·문자열 생성자 등은 제외. **SDK처럼 가변**이라 dict 키로 쓴 뒤 바꾸면 조회가 깨진다. `k_steamIDNil`은 노출하지 않음(`CSteamID()`와 같음) |
 | `SteamNetworkingIdentity` | 클래스 | `set_steam_id()`, `get_steam_id()` 등 필요분 |
 | `SteamNetworkingConfigValue_t*` 배열 | `Sequence[SteamNetworkingConfigValue]` | 초기 범위에선 빈 목록만 쓰여도 시그니처는 SDK 그대로 |
 | `SteamNetConnectionInfo_t` 등 출력 구조체 | 파이썬 값 객체(읽기 전용) | |

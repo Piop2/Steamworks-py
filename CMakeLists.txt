@@ -29,7 +29,9 @@ endforeach()
 find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module ${SKBUILD_SABI_COMPONENT})
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(_native STABLE_ABI NB_STATIC src/steamworks/_native.cpp)
+nanobind_add_module(_native STABLE_ABI NB_STATIC
+  src/steamworks/_native.cpp
+  src/steamworks/bind_types.cpp)
 target_include_directories(_native PRIVATE "${STEAM_INCLUDE_DIR}")
 target_link_libraries(_native PRIVATE "${STEAM_LIB}")
 

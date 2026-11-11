@@ -1,5 +1,8 @@
 #include <nanobind/nanobind.h>
 
-#include <steam/steam_api.h>
+#include "bindings.h"
 
-NB_MODULE(_native, m) { m.doc() = "Steamworks SDK 1.65 native bindings"; }
+NB_MODULE(_native, m) {
+    m.doc() = "Steamworks SDK 1.65 native bindings";
+    bind_types(m);
+}
