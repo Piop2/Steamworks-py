@@ -37,6 +37,11 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 | `steamworks_sdk/` | SDK 원본 전체(zip의 `sdk/`를 그대로 풀어 둠) | 작업용 참조(헤더 등). gitignore |
 | `sdk/` | **빌드할 플랫폼의 DLL·lib만** (현재 win64: `steam_api64.dll`, `steam_api64.lib`) | 빌드·실행용. `steam_api*` 패턴으로 ignore |
 
+### 연결 방식
+- **`ISteamNetworkingSockets`(연결형)를 쓴다.** SDK 예제(Spacewar)와 같은 정석 구조: 호스트가 `CreateListenSocketP2P`로 받고, 클라이언트가 `ConnectP2P`로 접속한다. 호스트는 일반 클라이언트이므로 `SteamGameServerNetworkingSockets`가 아니라 `SteamNetworkingSockets()`를 쓴다.
+- 역할 분리: **연결 상태(접속·끊김)는 Sockets가 기준**, 로비는 방 찾기·입장·메타데이터만 맡는다.
+- `ISteamNetworkingMessages`는 쓰지 않는다(SDK 설명상 UDP 코드 이식용).
+
 ### 초기 범위
 | 영역 | SDK API | 용도 |
 |---|---|---|
@@ -45,9 +50,9 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 | 사용자 | `ISteamUser` (`GetSteamID`) | 내 SteamID |
 | 친구 | `ISteamFriends` (`GetPersonaName`, `GetFriendPersonaName`, `ActivateGameOverlayInviteDialog`) | 이름 표시·초대 |
 | 로비 | `ISteamMatchmaking` (Create/Join/Leave, 멤버 조회, 로비 데이터, `GetLobbyOwner`) + 콜백 `LobbyCreated_t`, `LobbyEnter_t`, `LobbyChatUpdate_t`, `LobbyDataUpdate_t`, `GameLobbyJoinRequested_t` | 방 생성·참가·인원 변화·호스트 판정 |
-| 메시지 | `ISteamNetworkingMessages` (`SendMessageToUser`, `ReceiveMessagesOnChannel`, `AcceptSessionWithUser`, `CloseSessionWithUser`) + 콜백 `SteamNetworkingMessagesSessionRequest_t`, `SteamNetworkingMessagesSessionFailed_t` | 호스트↔클라이언트 메시지 |
+| 연결·메시지 | `ISteamNetworkingSockets` (`CreateListenSocketP2P`, `CloseListenSocket`, `ConnectP2P`, `AcceptConnection`, `CloseConnection`, `GetConnectionInfo`, `SendMessageToConnection`, `CreatePollGroup`, `DestroyPollGroup`, `SetConnectionPollGroup`, `ReceiveMessagesOnPollGroup`, `ReceiveMessagesOnConnection`) + `SteamNetworkingMessage_t::Release` + 콜백 `SteamNetConnectionStatusChangedCallback_t` | 호스트(listen socket)↔클라이언트(ConnectP2P) 연결과 메시지 |
 
-범위 밖(필요 시 추가): 업적/통계, 클라우드, 워크숍, 인벤토리, `ISteamNetworkingSockets`(연결 기반 소켓).
+범위 밖(필요 시 추가): 업적/통계, 클라우드, 워크숍, 인벤토리, `ISteamNetworkingMessages`(비연결형 메시지).
 
 ### 구현 원칙
 - **바인딩은 얇게("1:1").** SDK 인터페이스 단위로 노출하고, 그 이상의 추상화는 MATCHMAKING의 `steam` 어댑터 레이어에서 한다.
@@ -66,5 +71,4 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 - SDK 버전을 하나로 고정하고 README에 적는다. 구조체·시그니처 불일치는 컴파일 단계에서 드러난다.
 
 ## 미결
-1. 메시지 전송에 `ISteamNetworkingMessages`(비연결형)만 쓸지, 32명 규모에서 `ISteamNetworkingSockets`(연결형)가 필요할지 — `network` Protocol 명세 시 함께 판단.
-2. 파이썬 쪽 이름 규칙: SDK 이름 그대로(`CreateLobby`)인가 snake_case(`create_lobby`)인가.
+1. 파이썬 쪽 이름 규칙: SDK 이름 그대로(`CreateLobby`)인가 snake_case(`create_lobby`)인가.
