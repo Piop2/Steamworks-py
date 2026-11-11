@@ -32,8 +32,11 @@ find_package(nanobind CONFIG REQUIRED)
 nanobind_add_module(_native STABLE_ABI NB_STATIC
   src/steamworks/_native.cpp
   src/steamworks/bind_types.cpp
-  src/steamworks/bind_lifecycle.cpp)
+  src/steamworks/bind_lifecycle.cpp
+  src/steamworks/bind_callbacks.cpp
+  src/steamworks/bind_matchmaking.cpp)
 target_include_directories(_native PRIVATE "${STEAM_INCLUDE_DIR}")
+target_compile_options(_native PRIVATE /utf-8)  # docstrings are UTF-8 (Korean)
 target_link_libraries(_native PRIVATE "${STEAM_LIB}")
 
 # Python은 확장 모듈과 같은 폴더의 의존 DLL을 찾는다. 스텁 생성 시 import에도 필요.
@@ -42,6 +45,7 @@ add_custom_command(TARGET _native POST_BUILD
 
 nanobind_add_stub(_native_stub
   MODULE _native
+  INCLUDE_PRIVATE
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/steamworks/_native.pyi"
   PYTHON_PATH "$<TARGET_FILE_DIR:_native>"
   DEPENDS _native)

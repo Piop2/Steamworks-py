@@ -1,7 +1,8 @@
 """Steamworks SDK 1.65 native bindings"""
 
+from collections.abc import Callable
 import enum
-from typing import overload
+from typing import Generic, TypeVar, overload
 
 
 class Result(enum.IntEnum):
@@ -403,10 +404,108 @@ H_STEAM_LISTEN_SOCKET_INVALID: int = 0
 
 H_STEAM_NET_POLL_GROUP_INVALID: int = 0
 
-def init_ex() -> tuple[SteamAPIInitResult, str]: ...
+def init_ex() -> tuple[SteamAPIInitResult, str]:
+    """
+    Steam API를 초기화한다 (SDK `SteamAPI_InitEx`).
 
-def shutdown() -> None: ...
+    실행 중인 Steam 클라이언트에 연결한다. `(결과, 오류 메시지)`를 반환하며 성공하면
+    `SteamAPIInitResult.OK`와 빈 문자열. 실패해도 예외를 던지지 않는다.
+    """
 
-def restart_app_if_necessary(app_id: int) -> bool: ...
+def shutdown() -> None:
+    """Steam API를 종료한다 (SDK `SteamAPI_Shutdown`). 중복 호출해도 안전."""
 
-def run_callbacks() -> None: ...
+def restart_app_if_necessary(app_id: int) -> bool:
+    """
+    Steam을 거치지 않고 실행됐으면 Steam으로 다시 실행한다 (SDK `SteamAPI_RestartAppIfNecessary`).
+
+    `True`면 Steam이 게임을 다시 띄우므로 게임은 즉시 종료해야 한다. `init_ex()` 전에 호출한다.
+    """
+
+def run_callbacks() -> None:
+    """
+    대기 중인 콜백·CallResult 핸들러를 이 스레드에서 실행한다 (SDK `SteamAPI_RunCallbacks`).
+
+    게임 루프에서 매 프레임 호출한다. 핸들러 예외는 `sys.unraisablehook`으로 보고되고 전파되지 않는다.
+    """
+
+_T = TypeVar("_T")
+
+class Callback(Generic[_T]):
+    """
+    브로드캐스트 콜백 등록 (SDK `CCallback` / `STEAM_CALLBACK`).
+
+    생성하면 바로 등록된다. `unregister()` 전까지 라이브러리가 객체를 붙잡아 두므로
+    변수에 보관하지 않아도 해제되지 않는다. 핸들러는 `run_callbacks()` 안에서 호출되며,
+    핸들러 예외는 `sys.unraisablehook`으로 보고된다.
+
+        cb = Callback(LobbyEnter, on_enter)  # on_enter(data: LobbyEnter) -> None
+    """
+
+    def __init__(self, callback_type: type[_T], handler: Callable[[_T], None]) -> None:
+        """`callback_type` 콜백을 `handler`로 등록한다. 콜백 구조체 타입이 아니면 `TypeError`."""
+
+    def register(self, handler: Callable[[_T], None]) -> None:
+        """다시 등록한다 (SDK `CCallback::Register`). 이미 등록돼 있으면 해제 후 `handler`로 교체한다."""
+
+    def unregister(self) -> None:
+        """등록을 해제한다 (SDK `CCallback::Unregister`). 이후 라이브러리는 객체를 붙잡지 않는다."""
+
+    def is_registered(self) -> bool:
+        """등록돼 있으면 `True`."""
+
+class CallResult(Generic[_T]):
+    """
+    비동기 API 호출 결과 수신 (SDK `CCallResult`).
+
+    결과는 1회만 오고, 받으면 자동으로 비활성이 된다. 활성 동안 라이브러리가 객체를
+    붙잡아 둔다. 핸들러는 `run_callbacks()` 안에서 호출되며 예외는 `sys.unraisablehook`으로 보고된다.
+
+        cr = CallResult(LobbyCreated)
+        cr.set(api_call, on_created)  # on_created(data: LobbyCreated, io_failure: bool) -> None
+    """
+
+    def __init__(self, callback_type: type[_T]) -> None:
+        """`callback_type` 결과를 받을 객체를 만든다(비활성). 콜백 구조체 타입이 아니면 `TypeError`."""
+
+    def set(self, api_call: int, handler: Callable[[_T, bool], None]) -> None:
+        """
+        `api_call` 결과를 `handler(data, io_failure)`로 받는다 (SDK `CCallResult::Set`).
+        활성 중이면 이전 호출은 취소된다. `API_CALL_INVALID`면 비활성으로 남는다.
+        """
+
+    def cancel(self) -> None:
+        """대기 중인 결과 수신을 취소한다 (SDK `CCallResult::Cancel`)."""
+
+    def is_active(self) -> bool:
+        """결과를 기다리는 중이면 `True`."""
+
+class LobbyCreated:
+    """로비 생성 결과 (SDK `LobbyCreated_t`, `CreateLobby`의 CallResult)."""
+
+    @property
+    def result(self) -> Result:
+        """`Result.OK`면 성공."""
+
+    @property
+    def steam_id_lobby(self) -> int:
+        """생성된 로비의 SteamID(uint64). 실패하면 0."""
+
+class LobbyEnter:
+    """로비 입장 결과 (SDK `LobbyEnter_t`)."""
+
+    @property
+    def steam_id_lobby(self) -> int:
+        """입장한 로비의 SteamID(uint64)."""
+
+    @property
+    def chat_permissions(self) -> int:
+        """현재 사용자의 권한 플래그."""
+
+    @property
+    def locked(self) -> bool:
+        """`True`면 초대받은 사용자만 입장 가능."""
+
+    @property
+    def chat_room_enter_response(self) -> int:
+        """입장 응답 코드(SDK `EChatRoomEnterResponse` 값, uint32)."""

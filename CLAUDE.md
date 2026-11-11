@@ -11,6 +11,7 @@ Steamworks SDK Python 바인딩. MATCHMAKING의 서브모듈(`extern/Steamworks-
 - 설계는 사용자가 한다. 구현 전 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
 - **이 레포 전용 venv(`.venv`)에서 작업.** 시스템 Python 사용 금지.
 - Steamworks SDK 바이너리/헤더, `steam_appid.txt` 커밋 금지 (`steamworks_sdk/`에 배치, gitignore).
+- **구현마다 IDE 힌트 포함**: 공개 API에 docstring, 정확한 타입 시그니처(`nb::sig`)가 생성 스텁(`.pyi`)에 나와야 한다.
 - 타입 힌트, ruff/mypy(strict) 통과. 테스트를 약화/삭제해서 통과시키지 않는다.
 
 ## 커밋/푸시 (필수 준수)

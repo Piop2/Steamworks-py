@@ -4,3 +4,5 @@
 
 void bind_types(nanobind::module_ &m);
 void bind_lifecycle(nanobind::module_ &m);
+void bind_callbacks(nanobind::module_ &m);
+void bind_matchmaking(nanobind::module_ &m);
