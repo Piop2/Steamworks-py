@@ -55,7 +55,7 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 ### 초기 범위
 | 영역 | SDK API | 용도 |
 |---|---|---|
-| 수명주기 | `SteamAPI_InitFlat`(또는 `SteamAPI_Init`), `SteamAPI_Shutdown`, `SteamAPI_RestartAppIfNecessary` | 초기화·종료 |
+| 수명주기 | `SteamAPI_InitEx`, `SteamAPI_Shutdown`, `SteamAPI_RestartAppIfNecessary` | 초기화·종료. `InitEx`는 인터페이스 버전을 검증하고 `ESteamAPIInitResult`+메시지를 준다(SDK 권장, 새 프로젝트용). 파이썬 `init()`은 실패 시 결과 코드·메시지를 담은 예외 |
 | 콜백 | `SteamAPI_RunCallbacks`, `CCallResult`, `STEAM_CALLBACK` | 콜백·CallResult 수신 |
 | 사용자 | `ISteamUser` (`GetSteamID`) | 내 SteamID |
 | 친구 | `ISteamFriends` (`GetPersonaName`, `GetFriendPersonaName`, `ActivateGameOverlayInviteDialog`) | 이름 표시·초대 |
@@ -81,5 +81,4 @@ PEP 8에 맞춰 snake_case로 기계적으로 변환한다. SDK 이름과의 대
 - SDK 버전을 하나로 고정하고 README에 적는다. 구조체·시그니처 불일치는 컴파일 단계에서 드러난다.
 
 ## 미결
-1. 초기화 함수: C++ 바인딩이므로 인터페이스 버전을 검증하는 `SteamAPI_InitEx`를 쓸지(초기 범위 표의 `SteamAPI_InitFlat`은 flat API 기준이라 재검토 필요).
-2. 실행 시 DLL 위치: 빌드 시 `sdk/`의 DLL을 패키지(`.pyd` 옆)로 복사해 패키지 내부에서 로드할지, 호출자가 DLL 경로를 지정할지.
+1. 실행 시 DLL 위치: 빌드 시 `sdk/`의 DLL을 패키지(`.pyd` 옆)로 복사해 패키지 내부에서 로드할지, 호출자가 DLL 경로를 지정할지.
