@@ -413,7 +413,11 @@ def init_ex() -> tuple[SteamAPIInitResult, str]:
     """
 
 def shutdown() -> None:
-    """Steam API를 종료한다 (SDK `SteamAPI_Shutdown`). 중복 호출해도 안전."""
+    """
+    Steam API를 종료한다 (SDK `SteamAPI_Shutdown`). 중복 호출해도 안전.
+
+    이전에 얻은 인터페이스 객체는 무효가 되어 메서드 호출 시 `RuntimeError`.
+    """
 
 def restart_app_if_necessary(app_id: int) -> bool:
     """
@@ -509,3 +513,43 @@ class LobbyEnter:
     @property
     def chat_room_enter_response(self) -> int:
         """입장 응답 코드(SDK `EChatRoomEnterResponse` 값, uint32)."""
+
+class SteamUser:
+    """
+    SDK `ISteamUser` 인터페이스. `steam_user()`로만 얻는다.
+
+    `shutdown()` 이후 보관해 둔 객체의 메서드를 호출하면 `RuntimeError`.
+    """
+
+    def get_steam_id(self) -> CSteamID:
+        """현재 로그인한 사용자의 SteamID (SDK `ISteamUser::GetSteamID`)."""
+
+def steam_user() -> SteamUser | None:
+    """
+    `SteamUser` 인터페이스를 얻는다 (SDK `SteamUser()`). `init_ex()` 전이거나 실패했으면 `None`.
+    """
+
+class SteamFriends:
+    """
+    SDK `ISteamFriends` 인터페이스. `steam_friends()`로만 얻는다.
+
+    `shutdown()` 이후 보관해 둔 객체의 메서드를 호출하면 `RuntimeError`.
+    """
+
+    def get_persona_name(self) -> str:
+        """현재 사용자의 표시 이름 (SDK `ISteamFriends::GetPersonaName`)."""
+
+    def get_friend_persona_name(self, steam_id_friend: CSteamID) -> str:
+        """
+        다른 사용자의 표시 이름 (SDK `ISteamFriends::GetFriendPersonaName`).
+
+        모르는 사용자면 SDK처럼 `""` 또는 `"[unknown]"`.
+        """
+
+    def activate_game_overlay_invite_dialog(self, steam_id_lobby: CSteamID) -> None:
+        """로비 초대 오버레이를 연다 (SDK `ISteamFriends::ActivateGameOverlayInviteDialog`)."""
+
+def steam_friends() -> SteamFriends | None:
+    """
+    `SteamFriends` 인터페이스를 얻는다 (SDK `SteamFriends()`). `init_ex()` 전이거나 실패했으면 `None`.
+    """

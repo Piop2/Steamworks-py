@@ -8,4 +8,6 @@ NB_MODULE(_native, m) {
     bind_lifecycle(m);
     bind_callbacks(m);
     bind_matchmaking(m);
+    bind_user(m);
+    bind_friends(m);
 }

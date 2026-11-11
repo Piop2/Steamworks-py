@@ -34,7 +34,9 @@ nanobind_add_module(_native STABLE_ABI NB_STATIC
   src/steamworks/bind_types.cpp
   src/steamworks/bind_lifecycle.cpp
   src/steamworks/bind_callbacks.cpp
-  src/steamworks/bind_matchmaking.cpp)
+  src/steamworks/bind_matchmaking.cpp
+  src/steamworks/bind_user.cpp
+  src/steamworks/bind_friends.cpp)
 target_include_directories(_native PRIVATE "${STEAM_INCLUDE_DIR}")
 target_compile_options(_native PRIVATE /utf-8)  # docstrings are UTF-8 (Korean)
 target_link_libraries(_native PRIVATE "${STEAM_LIB}")

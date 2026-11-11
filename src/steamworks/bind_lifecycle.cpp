@@ -7,6 +7,7 @@
 
 #include "bindings.h"
 #include "callback_struct.h"
+#include "interface.h"
 
 using namespace nb::literals;
 
@@ -25,7 +26,14 @@ void bind_lifecycle(nb::module_ &m) {
         "Steam API를 초기화한다 (SDK `SteamAPI_InitEx`).\n\n"
         "실행 중인 Steam 클라이언트에 연결한다. `(결과, 오류 메시지)`를 반환하며 성공하면\n"
         "`SteamAPIInitResult.OK`와 빈 문자열. 실패해도 예외를 던지지 않는다.");
-    m.def("shutdown", &SteamAPI_Shutdown, "Steam API를 종료한다 (SDK `SteamAPI_Shutdown`). 중복 호출해도 안전.");
+    m.def(
+        "shutdown",
+        [] {
+            SteamAPI_Shutdown();
+            ++g_interface_generation;  // invalidates held interface objects
+        },
+        "Steam API를 종료한다 (SDK `SteamAPI_Shutdown`). 중복 호출해도 안전.\n\n"
+        "이전에 얻은 인터페이스 객체는 무효가 되어 메서드 호출 시 `RuntimeError`.");
     m.def("restart_app_if_necessary", &SteamAPI_RestartAppIfNecessary, "app_id"_a,
           "Steam을 거치지 않고 실행됐으면 Steam으로 다시 실행한다 (SDK `SteamAPI_RestartAppIfNecessary`).\n\n"
           "`True`면 Steam이 게임을 다시 띄우므로 게임은 즉시 종료해야 한다. `init_ex()` 전에 호출한다.");
