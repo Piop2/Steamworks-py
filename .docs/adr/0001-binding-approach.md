@@ -24,6 +24,13 @@ MATCHMAKING ADR 0002로 네트워킹은 Steam Lobby + Steam Networking(호스트
 
 nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 올라가도 재빌드가 필요 없고, `nanobind.stubgen`으로 mypy용 `.pyi`를 생성할 수 있어 C의 주요 단점(버전별 빌드, 스텁 관리)이 줄어든다.
 
+### 지원 플랫폼
+- 목표 범위는 Steamworks SDK가 지원하는 플랫폼과 같다(Windows, Linux, macOS).
+- **현재는 Windows(64비트) 기준으로 개발·검증한다.** 다른 플랫폼을 막는 설계(Windows 전용 API를 바인딩 코어에 섞기 등)는 하지 않되, 빌드·테스트는 Windows부터.
+
+### SDK 버전
+- 사용자가 `steamworks_sdk/`에 배치한 SDK 버전으로 고정한다. 배치 후 실제 버전 번호를 README에 기록한다.
+
 ### 초기 범위
 | 영역 | SDK API | 용도 |
 |---|---|---|
@@ -53,7 +60,5 @@ nanobind를 고른 이유: stable ABI(abi3, Python 3.12+)로 Python 버전이 �
 - SDK 버전을 하나로 고정하고 README에 적는다. 구조체·시그니처 불일치는 컴파일 단계에서 드러난다.
 
 ## 미결
-1. 지원 플랫폼: Windows만으로 시작할지, Linux/macOS도 초기부터 포함할지.
-2. 고정할 SDK 버전.
-3. 메시지 전송에 `ISteamNetworkingMessages`(비연결형)만 쓸지, 32명 규모에서 `ISteamNetworkingSockets`(연결형)가 필요할지 — `network` Protocol 명세 시 함께 판단.
-4. 파이썬 쪽 이름 규칙: SDK 이름 그대로(`CreateLobby`)인가 snake_case(`create_lobby`)인가.
+1. 메시지 전송에 `ISteamNetworkingMessages`(비연결형)만 쓸지, 32명 규모에서 `ISteamNetworkingSockets`(연결형)가 필요할지 — `network` Protocol 명세 시 함께 판단.
+2. 파이썬 쪽 이름 규칙: SDK 이름 그대로(`CreateLobby`)인가 snake_case(`create_lobby`)인가.
