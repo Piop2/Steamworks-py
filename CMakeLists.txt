@@ -31,7 +31,8 @@ find_package(nanobind CONFIG REQUIRED)
 
 nanobind_add_module(_native STABLE_ABI NB_STATIC
   src/steamworks/_native.cpp
-  src/steamworks/bind_types.cpp)
+  src/steamworks/bind_types.cpp
+  src/steamworks/bind_lifecycle.cpp)
 target_include_directories(_native PRIVATE "${STEAM_INCLUDE_DIR}")
 target_link_libraries(_native PRIVATE "${STEAM_LIB}")
 

@@ -24,6 +24,8 @@ wheel.packages = ["src/steamworks"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not integration'"
+markers = ["integration: needs a running Steam client and steam_appid.txt (AppID 480)"]
 
 [tool.ruff]
 line-length = 100
