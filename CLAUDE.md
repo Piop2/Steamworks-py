@@ -1,6 +1,8 @@
 # Steamworks-py
 
-Steamworks SDK Python 바인딩. MATCHMAKING의 서브모듈(`extern/Steamworks-py`)로 쓰인다. 개요·환경: [README.md](README.md)
+Steamworks SDK Python 바인딩. MATCHMAKING의 서브모듈(`extern/Steamworks-py`)로 쓰인다. 개요·환경: [README.md](README.md) · 현재 작업: [.docs/tasks/current.md](.docs/tasks/current.md) · 할 일: [.docs/tasks/backlog.md](.docs/tasks/backlog.md)
+
+"지금 뭐 해야 돼?" 류 질문 → `current.md`의 **다음 할 일**을 이어서 진행한다. 작업 상태가 바뀌면 `current.md`를 갱신한다.
 
 ## 결정 기록 (ADR)
 - [0001 바인딩 방식과 초기 범위](.docs/adr/0001-binding-approach.md) — nanobind C++ 확장 모듈, 필요한 범위부터 (accepted)
