@@ -1,6 +1,6 @@
 # Steamworks-py
 
-Steamworks SDK를 Python에 1:1 바인딩하는 패키지. (현재 골격만 있음, 바인딩 방식 미정)
+Steamworks SDK를 Python에 1:1 바인딩하는 패키지. (현재 골격만 있음. 바인딩: nanobind C++ 확장 모듈, [ADR 0001](.docs/adr/0001-binding-approach.md))
 
 ## 개발 환경 (이 레포 전용 venv)
 

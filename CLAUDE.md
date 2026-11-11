@@ -3,7 +3,7 @@
 Steamworks SDK Python 바인딩. MATCHMAKING의 서브모듈(`extern/Steamworks-py`)로 쓰인다. 개요·환경: [README.md](README.md)
 
 ## 결정 기록 (ADR)
-- [0001 바인딩 방식과 초기 범위](.docs/adr/0001-binding-approach.md) — ctypes + flat API, 필요한 범위부터 (proposed)
+- [0001 바인딩 방식과 초기 범위](.docs/adr/0001-binding-approach.md) — nanobind C++ 확장 모듈, 필요한 범위부터 (accepted)
 
 ## 규칙
 - 설계는 사용자가 한다. 구현 전 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
