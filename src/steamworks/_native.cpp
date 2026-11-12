@@ -10,4 +10,6 @@ NB_MODULE(_native, m) {
     bind_matchmaking(m);
     bind_user(m);
     bind_friends(m);
+    bind_networking_sockets(m);
+    bind_networking_utils(m);
 }

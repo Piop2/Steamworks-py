@@ -11,6 +11,6 @@
 | `shutdown()` 중복 호출 | SDK에 그대로 전달(SDK가 안전하게 처리) |
 | 인자 타입 오류 | nanobind 기본 `TypeError` (SDK 실패가 아니라 파이썬 호출 오류) |
 | 콜백·CallResult 핸들러 안의 파이썬 예외 | **`sys.unraisablehook`으로 보고**(`PyErr_WriteUnraisable`) 후 다음 콜백 계속 디스패치. `run_callbacks()`는 예외를 던지지 않는다 |
-| 해제된 `SteamNetworkingMessage` 접근 | `ValueError` ([types.md](types.md)) |
+| 해제된 `SteamNetworkingMessage` 접근 | `ValueError` ([types.md](types.md)). `shutdown()` 후 접근은 `RuntimeError` |
 
 - GIL: `run_callbacks()`와 모든 호출은 GIL을 쥔 채 실행(콜백이 같은 스레드에서 파이썬을 부르므로). 블로킹 SDK 호출은 초기 범위에 없음.

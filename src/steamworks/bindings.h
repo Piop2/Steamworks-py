@@ -8,3 +8,5 @@ void bind_callbacks(nanobind::module_ &m);
 void bind_matchmaking(nanobind::module_ &m);
 void bind_user(nanobind::module_ &m);
 void bind_friends(nanobind::module_ &m);
+void bind_networking_sockets(nanobind::module_ &m);
+void bind_networking_utils(nanobind::module_ &m);

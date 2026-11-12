@@ -15,21 +15,44 @@ from steamworks import (
     LobbyType,
     Result,
     SteamAPIInitResult,
+    SteamNetConnectionEnd,
+    SteamNetworkingConfig,
+    SteamNetworkingConnectionState,
     Universe,
 )
 
 HEADERS = Path(__file__).resolve().parents[1] / "steamworks_sdk" / "public" / "steam"
 
-ENUMS: list[tuple[type[enum.IntEnum] | type[enum.IntFlag], str, str]] = [
-    (Result, "EResult", "steamclientpublic.h"),
-    (SteamAPIInitResult, "ESteamAPIInitResult", "steam_api.h"),
-    (Universe, "EUniverse", "steamuniverse.h"),
-    (AccountType, "EAccountType", "steamclientpublic.h"),
-    (LobbyType, "ELobbyType", "isteammatchmaking.h"),
-    (LobbyComparison, "ELobbyComparison", "isteammatchmaking.h"),
-    (LobbyDistanceFilter, "ELobbyDistanceFilter", "isteammatchmaking.h"),
-    (ChatMemberStateChange, "EChatMemberStateChange", "isteammatchmaking.h"),
-    (ChatRoomEnterResponse, "EChatRoomEnterResponse", "steamclientpublic.h"),
+NET = "steamnetworkingtypes.h"
+# (python enum, SDK enum, header, member prefix if not k_<SDK enum>, header members left out on purpose)
+ENUMS: list[
+    tuple[type[enum.IntEnum] | type[enum.IntFlag], str, str, str | None, frozenset[str]]
+] = [
+    (Result, "EResult", "steamclientpublic.h", None, frozenset()),
+    (SteamAPIInitResult, "ESteamAPIInitResult", "steam_api.h", None, frozenset()),
+    (Universe, "EUniverse", "steamuniverse.h", None, frozenset()),
+    (AccountType, "EAccountType", "steamclientpublic.h", None, frozenset()),
+    (LobbyType, "ELobbyType", "isteammatchmaking.h", None, frozenset()),
+    (LobbyComparison, "ELobbyComparison", "isteammatchmaking.h", None, frozenset()),
+    (LobbyDistanceFilter, "ELobbyDistanceFilter", "isteammatchmaking.h", None, frozenset()),
+    (ChatMemberStateChange, "EChatMemberStateChange", "isteammatchmaking.h", None, frozenset()),
+    (ChatRoomEnterResponse, "EChatRoomEnterResponse", "steamclientpublic.h", None, frozenset()),
+    # Internal states "will not be returned by any API".
+    (
+        SteamNetworkingConnectionState,
+        "ESteamNetworkingConnectionState",
+        NET,
+        None,
+        frozenset({"FIN_WAIT", "LINGER", "DEAD", "FORCE32_BIT"}),
+    ),
+    (SteamNetConnectionEnd, "ESteamNetConnectionEnd", NET, None, frozenset({"FORCE32_BIT"})),
+    (
+        SteamNetworkingConfig,
+        "ESteamNetworkingConfigValue",
+        NET,
+        "k_ESteamNetworkingConfig_",
+        frozenset({"DELETED_ENUMERATE_DEV_VARS"}),
+    ),
 ]
 
 GABE = 76561197960287930  # account 22202, instance 1, individual, public
@@ -37,31 +60,50 @@ GABE = 76561197960287930  # account 22202, instance 1, individual, public
 
 def _snake(name: str) -> str:
     name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
-    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name).upper()
+    name = re.sub(r"([a-z])([A-Z])", r"\1_\2", name)
+    return re.sub(r"([0-9])([A-Z][a-z])", r"\1_\2", name).upper()  # P2P stays P2P
 
 
-def _header_values(sdk_enum: str, header: str) -> dict[str, int]:
+def _header_values(sdk_enum: str, header: str, prefix: str | None = None) -> dict[str, int]:
+    prefix = prefix or f"k_{sdk_enum}"
     text = (HEADERS / header).read_text(encoding="utf-8", errors="replace")
     match = re.search(rf"^enum {sdk_enum}\s*\{{(.*?)^\}};", text, re.DOTALL | re.MULTILINE)
     assert match is not None
     body = re.sub(r"//[^\n]*", "", match.group(1))
+    by_sdk_name: dict[str, int] = {}
     values: dict[str, int] = {}
     next_value = 0
     for name, value in re.findall(
-        rf"\b(k_{sdk_enum}\w*)\s*(?:=\s*(-?(?:0x[0-9A-Fa-f]+|\d+)))?\s*(?:,|$)", body, re.MULTILINE
+        rf"\b({prefix}\w*)\s*(?:=\s*(-?(?:0x[0-9A-Fa-f]+|\d+)|k_\w+))?\s*(?:,|$)",
+        body,
+        re.MULTILINE,
     ):
-        current = int(value, 0) if value else next_value
-        values[_snake(name[len(f"k_{sdk_enum}") :].lstrip("_"))] = current
+        # A value may name an earlier member (alias), e.g. App_Generic = App_Min.
+        if value in by_sdk_name:
+            current = by_sdk_name[value]
+        else:
+            current = int(value, 0) if value else next_value
+        by_sdk_name[name] = current
+        values[_snake(name[len(prefix) :].lstrip("_"))] = current
         next_value = current + 1
     return values
 
 
 @pytest.mark.skipif(not HEADERS.exists(), reason="Steamworks SDK headers not found")
-@pytest.mark.parametrize(("py_enum", "sdk_enum", "header"), ENUMS)
+@pytest.mark.parametrize(("py_enum", "sdk_enum", "header", "prefix", "excluded"), ENUMS)
 def test_enum_matches_sdk_header(
-    py_enum: type[enum.IntEnum] | type[enum.IntFlag], sdk_enum: str, header: str
+    py_enum: type[enum.IntEnum] | type[enum.IntFlag],
+    sdk_enum: str,
+    header: str,
+    prefix: str | None,
+    excluded: frozenset[str],
 ) -> None:
-    assert {m.name: m.value for m in py_enum} == _header_values(sdk_enum, header)
+    expected = _header_values(sdk_enum, header, prefix)
+    assert excluded <= expected.keys()  # exclusions must name real members
+    # __members__ includes aliases (same value, second name).
+    assert {name: m.value for name, m in py_enum.__members__.items()} == {
+        k: v for k, v in expected.items() if k not in excluded
+    }
 
 
 def test_enums_are_int_enums() -> None:

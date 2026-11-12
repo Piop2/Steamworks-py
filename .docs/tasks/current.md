@@ -3,9 +3,17 @@
 > 작업 상태가 바뀔 때마다 갱신한다. "지금 뭐 해야 돼?"의 답은 여기의 **다음 할 일**. 전체 작업 목록은 [backlog.md](backlog.md).
 
 ## 진행 중
-없음. backlog 6 완료, 7(`SteamNetworkingSockets`/`Utils`) 구현 전 보고 단계.
+없음. backlog 7 완료(커밋 전), 8(통합 테스트 정리) 대기.
 
-## 최근 완료 (2026-11-11)
+## 최근 완료 (2026-11-12)
+- **backlog 7 `SteamNetworkingSockets`/`SteamNetworkingUtils`**: `bind_networking_sockets.cpp`, `bind_networking_utils.cpp`
+  - 접근자 `steam_networking_sockets()`/`steam_networking_utils()`, ADR 0001 연결·메시지 함수 12종 + `init_relay_network_access`. 콜백 `SteamNetConnectionStatusChangedCallback`.
+  - 타입: `SteamNetworkingIdentity`, `SteamNetConnectionInfo`, `SteamNetworkingConfigValue`(set_int32/int64/float, 결정 1.b), `SteamNetworkingMessage`. enum 3종(`SteamNetworkingConfig` 이름 결정), 전송·연결정보 플래그 상수. 결정·제외 목록: [types.md](../api/types.md) "backlog 7 결정".
+  - `test_types.py` 헤더 파서: 별칭 값·접두사 지정·의도적 제외 지원, snake 변환에서 `P2P` 유지. 스텁 `__hash__` 패턴 추가.
+  - 통합: 자기 자신에게 `connect_p2p` → 수락·CONNECTED·poll group/연결 수신·`CLOSED_BY_PEER`(종료 사유·debug)·해제 후 `ValueError`·shutdown 후 `RuntimeError`·GC 경로. 내부 상태 enum 값은 들어오지 않음(변환 오류 없음).
+  - 확인: pytest 60 passed, integration 5 passed(networking 3회 반복 통과), ruff check/format, mypy(strict) 통과.
+
+## 이전 완료 (2026-11-11)
 - **backlog 6 `SteamMatchmaking`**: `bind_matchmaking.cpp`
   - `steam_matchmaking()`, 로비 생성·참가·나가기, 멤버·방장 조회, 로비 데이터 get/set/delete, `set_lobby_joinable`, `get_lobby_member_limit`, 검색(`request_lobby_list`, `get_lobby_by_index`, 필터 5종). SDK 1:1, `Interface<T>` 재사용.
   - enum(IntEnum): `LobbyType`, `LobbyComparison`, `LobbyDistanceFilter`, `ChatRoomEnterResponse`(결정: 추가). `ChatMemberStateChange`는 **IntFlag**(결정: 비트 플래그 enum은 IntFlag, [types.md](../api/types.md) 반영). stubgen이 IntFlag 내부 속성을 써서 mypy가 깨지므로 `stubgen_patterns.txt`(`PATTERN_FILE`)로 제거.
@@ -35,8 +43,7 @@
 - **backlog 1 빌드 골격**: scikit-build-core + CMake + nanobind(`cp312-abi3`).
 - API 명세 Q1–Q6 결정: [callbacks](../api/callbacks.md) · [types](../api/types.md) · [errors](../api/errors.md) · [module](../api/module.md) · [scope](../api/scope.md) · [dev-env](../api/dev-env.md).
 
-## 다음 할 일 — backlog 7 `SteamNetworkingSockets` / `SteamNetworkingUtils`
-- ADR 0001 연결·메시지 범위 + [scope.md](../api/scope.md) `init_relay_network_access`, [types.md](../api/types.md) `SteamNetworkingIdentity`·`SteamNetworkingMessage`·`SteamNetConnectionInfo`의 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
-- 2클라이언트 시나리오(남의 로비 `join_lobby`, `LobbyChatUpdate`, `GameLobbyJoinRequested`)는 backlog 8.
+## 다음 할 일 — backlog 8 통합 테스트 정리
+- 2클라이언트 시나리오(남의 로비 `join_lobby`, `LobbyChatUpdate`, `GameLobbyJoinRequested`, 다른 계정과 P2P)의 접근 방식·수정 파일·엣지 케이스를 보고하고 승인받는다.
 - 미확인: MATCHMAKING venv에서 `pip install -e extern/Steamworks-py` 빌드(backlog 9).
 - 미적용: backlog 2 기본 타입(`Result`, `CSteamID` 등)은 docstring 없음.
